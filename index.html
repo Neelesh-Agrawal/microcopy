@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microcopy — UI copy generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f5f0;
+      --surface: #edeae2;
+      --border: #ddd9ce;
+      --ink: #1c1c1a;
+      --ink-2: #6b6860;
+      --ink-3: #a8a49c;
+      --accent: #1c1c1a;
+      --green: #2d7a4f;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+    }
+
+    .nav-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--ink-3);
+    }
+
+    /* HERO */
+    .hero {
+      padding: 3rem 2rem 2rem;
+      max-width: 680px;
+    }
+
+    .hero h1 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 300;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      color: var(--ink);
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--ink-2);
+    }
+
+    .hero p {
+      font-size: 15px;
+      color: var(--ink-2);
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 180px);
+      border-top: 1px solid var(--border);
+    }
+
+    /* LEFT PANEL */
+    .panel-left {
+      border-right: 1px solid var(--border);
+      padding: 1.75rem 2rem;
+    }
+
+    .field-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .field-group { margin-bottom: 1.5rem; }
+
+    textarea, select {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      resize: none;
+    }
+
+    textarea { min-height: 100px; line-height: 1.6; }
+    textarea::placeholder { color: var(--ink-3); font-weight: 300; }
+    textarea:focus, select:focus { border-color: var(--ink-2); }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a8a49c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    /* TONE BUTTONS */
+    .tone-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tone-btn {
+      flex: 1;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+      padding: 9px 0;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.15s;
+    }
+
+    .tone-btn:hover { border-color: var(--ink-2); color: var(--ink-2); }
+    .tone-btn.active { border-color: var(--ink); color: var(--ink); background: var(--surface); }
+
+    /* GENERATE BTN */
+    .gen-btn {
+      width: 100%;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 13px;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .gen-btn:hover { opacity: 0.8; }
+    .gen-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* LOADING */
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 1.25rem;
+    }
+
+    .loading.on { display: flex; }
+
+    .dots { display: flex; gap: 5px; }
+
+    .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+      animation: dp 1.2s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dp {
+      0%,80%,100% { background: var(--border); }
+      40% { background: var(--ink-2); }
+    }
+
+    .load-txt {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+    }
+
+    .err-msg {
+      display: none;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: #c0392b;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+
+    .err-msg.on { display: block; }
+
+    /* RIGHT PANEL */
+    .panel-right {
+      padding: 1.75rem 2rem;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 300px;
+      gap: 12px;
+      opacity: 0.35;
+    }
+
+    .empty-icon {
+      width: 40px; height: 40px;
+      border: 1.5px solid var(--ink-3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-txt {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--ink-3);
+    }
+
+    /* RESULTS */
+    .results { display: none; }
+    .results.on { display: block; }
+
+    .moment-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .variation {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .var-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .var-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--ink-3);
+    }
+
+    .var-copy-btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.15s;
+    }
+
+    .var-copy-btn:hover { border-color: var(--ink-2); color: var(--ink-2); }
+    .var-copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    .var-body { padding: 16px; }
+
+    .copy-line {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--surface);
+      align-items: baseline;
+    }
+
+    .copy-line:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .copy-key {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--ink-3);
+      min-width: 80px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .copy-val {
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+
+    .copy-val.headline { font-size: 16px; font-weight: 500; }
+    .copy-val.subtext { color: var(--ink-2); font-weight: 300; }
+    .copy-val.cta {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 3px;
+    }
+
+    .copy-all-btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--ink-2);
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.15s;
+      margin-top: 1rem;
+    }
+
+    .copy-all-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .copy-all-btn.copied { border-color: var(--green); color: var(--green); }
+
+    @media (max-width: 720px) {
+      .main { grid-template-columns: 1fr; }
+      .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-logo">Microcopy</span>
+    <span class="nav-tag">SHIP69 / DAY 57</span>
+  </nav>
+
+  <div class="hero">
+    <h1>Turn UI moments into <em>words that work.</em></h1>
+    <p>Describe a screen, state, or situation. Get three variations of every text element — headline, subtext, and CTA — ready to paste.</p>
+  </div>
+
+  <div class="main">
+    <div class="panel-left">
+
+      <div class="field-group">
+        <label class="field-label" for="momentSelect">UI Moment</label>
+        <select id="momentSelect">
+          <option value="empty_state">Empty state</option>
+          <option value="error">Error message</option>
+          <option value="success">Success message</option>
+          <option value="onboarding">Onboarding step</option>
+          <option value="tooltip">Tooltip</option>
+          <option value="404">404 page</option>
+          <option value="loading">Loading state</option>
+          <option value="confirm">Confirmation dialog</option>
+          <option value="offboarding">Offboarding / delete warning</option>
+          <option value="placeholder">Placeholder text</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="contextInput">Context</label>
+        <textarea id="contextInput" placeholder="Describe the product and situation. e.g. 'A fintech app — empty state for a notifications inbox. User hasn't enabled notifications yet.'"></textarea>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Tone</span>
+        <div class="tone-row">
+          <button class="tone-btn active" data-tone="friendly" onclick="setTone('friendly')">Friendly</button>
+          <button class="tone-btn" data-tone="professional" onclick="setTone('professional')">Professional</button>
+          <button class="tone-btn" data-tone="witty" onclick="setTone('witty')">Witty</button>
+        </div>
+      </div>
+
+      <button class="gen-btn" id="genBtn" onclick="generate()">Generate copy →</button>
+
+      <div class="loading" id="loading">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <span class="load-txt" id="loadTxt">Writing the copy...</span>
+      </div>
+
+      <div class="err-msg" id="errMsg"></div>
+
+    </div>
+
+    <div class="panel-right">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 3v10M3 8h10" stroke="#a8a49c" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="empty-txt">Results appear here</span>
+      </div>
+
+      <div class="results" id="results">
+        <div class="moment-label" id="momentLabel"></div>
+        <div id="variationsContainer"></div>
+        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()">Copy all variations</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTone = 'friendly';
+    let lastData = null;
+
+    const loadMsgs = [
+      'Writing the copy...',
+      'Finding the right words...',
+      'Testing the tone...',
+      'Almost there...'
+    ];
+
+    const momentLabels = {
+      empty_state: 'EMPTY STATE',
+      error: 'ERROR MESSAGE',
+      success: 'SUCCESS MESSAGE',
+      onboarding: 'ONBOARDING STEP',
+      tooltip: 'TOOLTIP',
+      '404': '404 PAGE',
+      loading: 'LOADING STATE',
+      confirm: 'CONFIRMATION DIALOG',
+      offboarding: 'OFFBOARDING WARNING',
+      placeholder: 'PLACEHOLDER TEXT'
+    };
+
+    function setTone(t) {
+      currentTone = t;
+      document.querySelectorAll('.tone-btn').forEach(b => b.classList.toggle('active', b.dataset.tone === t));
+    }
+
+    async function generate() {
+      const context = document.getElementById('contextInput').value.trim();
+      if (!context) {
+        document.getElementById('errMsg').textContent = 'Add some context first.';
+        document.getElementById('errMsg').classList.add('on');
+        return;
+      }
+
+      const moment = document.getElementById('momentSelect').value;
+      const btn = document.getElementById('genBtn');
+      const loading = document.getElementById('loading');
+      const ltxt = document.getElementById('loadTxt');
+      const errMsg = document.getElementById('errMsg');
+      const emptyState = document.getElementById('emptyState');
+      const results = document.getElementById('results');
+
+      btn.disabled = true;
+      errMsg.classList.remove('on');
+      results.classList.remove('on');
+      emptyState.style.display = 'none';
+      loading.classList.add('on');
+
+      let mi = 0;
+      const lt = setInterval(() => {
+        mi = (mi + 1) % loadMsgs.length;
+        ltxt.textContent = loadMsgs[mi];
+      }, 1800);
+
+      const toneGuide = {
+        friendly: 'Warm, human, encouraging. Like a helpful friend. Approachable language, no jargon.',
+        professional: 'Clear, direct, confident. Like a well-run product team. No fluff, no over-explaining.',
+        witty: 'Clever, slightly playful, a little unexpected. Makes the user smile without being annoying. Light humour, never forced.'
+      };
+
+      const system = `You write UI microcopy for product designers. You output ONLY a JSON object, no markdown, no preamble.
+
+Tone: ${toneGuide[currentTone]}
+
+UI Moment type: ${moment}
+
+Return exactly this shape:
+{
+  "variations": [
+    {
+      "headline": "Short heading — the main message. Max 8 words.",
+      "subtext": "Supporting sentence. One sentence, adds context or next step. Max 18 words.",
+      "cta": "Button or link label. Max 4 words. Action verb first."
+    },
+    {
+      "headline": "...",
+      "subtext": "...",
+      "cta": "..."
+    },
+    {
+      "headline": "...",
+      "subtext": "...",
+      "cta": "..."
+    }
+  ]
+}
+
+Three genuinely different variations — not just synonyms. Each should feel like a distinct creative direction while staying in the same tone. No bullet points anywhere. No markdown.`;
+
+      try {
+        const res = await fetch('/api/microcopy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            max_tokens: 1000,
+            system,
+            messages: [{ role: 'user', content: context }]
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          const msg = data.error?.message || data.error?.detail || data.error || 'API request failed';
+          throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+        }
+
+        const raw = data.choices?.[0]?.message?.content || '';
+        const clean = raw.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        lastData = { moment, variations: parsed.variations };
+
+        clearInterval(lt);
+        loading.classList.remove('on');
+
+        document.getElementById('momentLabel').textContent = momentLabels[moment] || moment.toUpperCase();
+
+        const container = document.getElementById('variationsContainer');
+        container.innerHTML = parsed.variations.map((v, i) => `
+          <div class="variation">
+            <div class="var-header">
+              <span class="var-num">VARIATION ${i + 1}</span>
+              <button class="var-copy-btn" onclick="copyVariation(${i})">Copy</button>
+            </div>
+            <div class="var-body">
+              <div class="copy-line">
+                <span class="copy-key">Headline</span>
+                <span class="copy-val headline">${v.headline}</span>
+              </div>
+              <div class="copy-line">
+                <span class="copy-key">Subtext</span>
+                <span class="copy-val subtext">${v.subtext}</span>
+              </div>
+              <div class="copy-line">
+                <span class="copy-key">CTA</span>
+                <span class="copy-val cta">${v.cta}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        results.classList.add('on');
+        btn.disabled = false;
+
+      } catch (e) {
+        clearInterval(lt);
+        loading.classList.remove('on');
+        emptyState.style.display = 'flex';
+        errMsg.textContent = e.message || 'Something went wrong. Check your connection and try again.';
+        errMsg.classList.add('on');
+        btn.disabled = false;
+      }
+    }
+
+    function copyVariation(i) {
+      if (!lastData) return;
+      const v = lastData.variations[i];
+      const txt = `Headline: ${v.headline}\nSubtext: ${v.subtext}\nCTA: ${v.cta}`;
+      navigator.clipboard.writeText(txt).then(() => {
+        const btns = document.querySelectorAll('.var-copy-btn');
+        btns[i].textContent = 'Copied ✓';
+        btns[i].classList.add('copied');
+        setTimeout(() => {
+          btns[i].textContent = 'Copy';
+          btns[i].classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    function copyAll() {
+      if (!lastData) return;
+      const txt = lastData.variations.map((v, i) =>
+        `Variation ${i + 1}\nHeadline: ${v.headline}\nSubtext: ${v.subtext}\nCTA: ${v.cta}`
+      ).join('\n\n');
+      navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById('copyAllBtn');
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy all variations';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>

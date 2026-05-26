@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/microcopy", "destination": "/api/microcopy.js" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}
