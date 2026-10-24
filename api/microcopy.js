@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model, max_tokens, messages = [], system } = req.body;
+    const { max_tokens, messages = [], system } = req.body || {};
 
     const groqMessages = system
       ? [{ role: 'system', content: system }, ...messages]
@@ -25,7 +25,8 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: model || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+        reasoning_effort: 'low',
         max_tokens: max_tokens || 1000,
         messages: groqMessages,
         temperature: 0.7,
