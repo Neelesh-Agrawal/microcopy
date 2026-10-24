@@ -1,644 +1,231 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Microcopy — UI copy generator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #f7f5f0;
-      --surface: #edeae2;
-      --border: #ddd9ce;
-      --ink: #1c1c1a;
-      --ink-2: #6b6860;
-      --ink-3: #a8a49c;
-      --accent: #1c1c1a;
-      --green: #2d7a4f;
-    }
-
-    html { font-size: 16px; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 100vh;
-    }
-
-    /* NAV */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-logo {
-      font-family: 'Space Mono', monospace;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--ink);
-    }
-
-    .nav-tag {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      color: var(--ink-3);
-    }
-
-    /* HERO */
-    .hero {
-      padding: 3rem 2rem 2rem;
-      max-width: 680px;
-    }
-
-    .hero h1 {
-      font-family: 'DM Sans', sans-serif;
-      font-size: clamp(28px, 4vw, 40px);
-      font-weight: 300;
-      line-height: 1.25;
-      letter-spacing: -0.5px;
-      color: var(--ink);
-      margin-bottom: 0.75rem;
-    }
-
-    .hero h1 em {
-      font-style: italic;
-      color: var(--ink-2);
-    }
-
-    .hero p {
-      font-size: 15px;
-      color: var(--ink-2);
-      line-height: 1.65;
-      font-weight: 300;
-    }
-
-    /* MAIN LAYOUT */
-    .main {
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 0;
-      min-height: calc(100vh - 180px);
-      border-top: 1px solid var(--border);
-    }
-
-    /* LEFT PANEL */
-    .panel-left {
-      border-right: 1px solid var(--border);
-      padding: 1.75rem 2rem;
-    }
-
-    .field-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      color: var(--ink-3);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .field-group { margin-bottom: 1.5rem; }
-
-    textarea, select {
-      width: 100%;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--ink);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.15s;
-      resize: none;
-    }
-
-    textarea { min-height: 100px; line-height: 1.6; }
-    textarea::placeholder { color: var(--ink-3); font-weight: 300; }
-    textarea:focus, select:focus { border-color: var(--ink-2); }
-
-    select {
-      appearance: none;
-      cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a8a49c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 36px;
-    }
-
-    /* TONE BUTTONS */
-    .tone-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .tone-btn {
-      flex: 1;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.3px;
-      padding: 9px 0;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--ink-3);
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.15s;
-    }
-
-    .tone-btn:hover { border-color: var(--ink-2); color: var(--ink-2); }
-    .tone-btn.active { border-color: var(--ink); color: var(--ink); background: var(--surface); }
-
-    /* GENERATE BTN */
-    .gen-btn {
-      width: 100%;
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 13px;
-      background: var(--ink);
-      color: var(--bg);
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      margin-top: 0.5rem;
-    }
-
-    .gen-btn:hover { opacity: 0.8; }
-    .gen-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    /* LOADING */
-    .loading {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      margin-top: 1.25rem;
-    }
-
-    .loading.on { display: flex; }
-
-    .dots { display: flex; gap: 5px; }
-
-    .dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--border);
-      animation: dp 1.2s ease-in-out infinite;
-    }
-
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes dp {
-      0%,80%,100% { background: var(--border); }
-      40% { background: var(--ink-2); }
-    }
-
-    .load-txt {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--ink-3);
-    }
-
-    .err-msg {
-      display: none;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: #c0392b;
-      margin-top: 1rem;
-      line-height: 1.5;
-    }
-
-    .err-msg.on { display: block; }
-
-    /* RIGHT PANEL */
-    .panel-right {
-      padding: 1.75rem 2rem;
-    }
-
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      min-height: 300px;
-      gap: 12px;
-      opacity: 0.35;
-    }
-
-    .empty-icon {
-      width: 40px; height: 40px;
-      border: 1.5px solid var(--ink-3);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .empty-txt {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: var(--ink-3);
-    }
-
-    /* RESULTS */
-    .results { display: none; }
-    .results.on { display: block; }
-
-    .moment-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--ink-3);
-      text-transform: uppercase;
-      margin-bottom: 1.25rem;
-    }
-
-    .variation {
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      margin-bottom: 12px;
-      overflow: hidden;
-      background: #fff;
-    }
-
-    .var-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .var-num {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      color: var(--ink-3);
-    }
-
-    .var-copy-btn {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--ink-3);
-      cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.15s;
-    }
-
-    .var-copy-btn:hover { border-color: var(--ink-2); color: var(--ink-2); }
-    .var-copy-btn.copied { border-color: var(--green); color: var(--green); }
-
-    .var-body { padding: 16px; }
-
-    .copy-line {
-      display: flex;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--surface);
-      align-items: baseline;
-    }
-
-    .copy-line:last-child { border-bottom: none; padding-bottom: 0; }
-
-    .copy-key {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-      color: var(--ink-3);
-      min-width: 80px;
-      padding-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .copy-val {
-      font-size: 14px;
-      color: var(--ink);
-      line-height: 1.5;
-      font-weight: 400;
-    }
-
-    .copy-val.headline { font-size: 16px; font-weight: 500; }
-    .copy-val.subtext { color: var(--ink-2); font-weight: 300; }
-    .copy-val.cta {
-      display: inline-block;
-      font-size: 13px;
-      font-weight: 500;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 5px 14px;
-      border-radius: 3px;
-    }
-
-    .copy-all-btn {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-      padding: 10px 18px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--ink-2);
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.15s;
-      margin-top: 1rem;
-    }
-
-    .copy-all-btn:hover { border-color: var(--ink); color: var(--ink); }
-    .copy-all-btn.copied { border-color: var(--green); color: var(--green); }
-
-    @media (max-width: 720px) {
-      .main { grid-template-columns: 1fr; }
-      .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Microcopy · UI words, seen in the interface</title>
+<meta name="description" content="Describe a UI moment. Get three distinct directions for headline, subtext and button, previewed inside a real interface pattern.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#17161a;--muted:#67646e;--line:#e4e2dc;--soft:#efede8;--accent:#5b3df5;--accent-soft:#ebe7ff;--warn:#c2410c;--ok:#15803d;--mono:'JetBrains Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#111014;--card:#19181d;--ink:#eeedf2;--muted:#9a97a3;--line:#2a2830;--soft:#211f26;--accent:#9d8bff;--accent-soft:#272046;--warn:#fb923c;--ok:#4ade80}}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font:15px/1.6 Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,textarea{font:inherit;color:inherit}button{cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 0}
+.brand{font-weight:800;font-size:1.15rem;letter-spacing:-.02em;display:flex;gap:9px;align-items:center}
+.brand i{font-style:normal;width:28px;height:28px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 .8rem var(--mono)}
+header a{font-size:.8rem;color:var(--muted);text-decoration:none}
+.hero{padding:22px 0 28px}
+.hero h1{font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.04;letter-spacing:-.045em;max-width:17ch}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--muted);max-width:56ch;margin-top:12px}
+.layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:24px;padding-bottom:56px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.side{position:sticky;top:16px}
+.lbl{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;margin:18px 0 8px}
+.lbl:first-child{margin-top:0}
+.lbl span{font-weight:500;color:var(--muted);font-size:.74rem}
+.moments{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.moments button{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;font-size:.82rem;font-weight:500;transition:border-color .15s,background .15s}
+.moments button svg{flex:none;opacity:.6}
+.moments button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.moments button[aria-pressed=true] svg{opacity:1}
+textarea{width:100%;min-height:120px;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:.9rem;line-height:1.5;resize:vertical}
+textarea:focus,.moments button:focus-visible,.tone button:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ex button{border:0;background:var(--soft);border-radius:999px;padding:4px 10px;font-size:.74rem;color:var(--muted)}
+.ex button:hover{color:var(--ink)}
+.tone{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;background:var(--bg)}
+.tone button{border:1px solid transparent;background:none;border-radius:9px;padding:8px 4px;font-size:.84rem;font-weight:500;color:var(--muted)}
+.tone button[aria-pressed=true]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.tone-note{font-size:.75rem;color:var(--muted);margin-top:6px;min-height:2.4em}
+.go{width:100%;margin-top:16px;padding:14px;border:0;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:.98rem;transition:transform .15s,opacity .2s}
+@media (prefers-color-scheme:dark){.go{color:#120c2e}}
+.go:hover{transform:translateY(-1px)}.go:disabled{opacity:.6;cursor:wait;transform:none}
+.status{margin-top:10px;font-size:.84rem;color:var(--muted);text-align:center;min-height:1.3em}.status.err{color:var(--warn)}
+kbd{font:500 .7rem var(--mono);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--bg)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.top h2{font-size:1rem;letter-spacing:-.01em}.top h2 small{display:block;font:500 .7rem var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:11px;padding:8px 14px;font-weight:600;font-size:.84rem}
+.btn.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.var{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;animation:rise .45s ease both}
+.var:nth-child(2){animation-delay:.07s}.var:nth-child(3){animation-delay:.14s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.stage{background:var(--soft);padding:22px 16px;min-height:230px;display:grid;place-items:center;border-bottom:1px solid var(--line)}
+.words{padding:16px;display:grid;gap:12px;flex:1}
+.w{display:grid;gap:2px}
+.w small{display:flex;justify-content:space-between;font:500 .66rem var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.w small b{font-weight:500}.w small b.over{color:var(--warn)}
+.w p{font-size:.88rem;outline:none;border-radius:6px;padding:2px 4px;margin:0 -4px}
+.w p:hover{background:var(--soft)}.w p:focus{background:var(--accent-soft)}
+.var footer{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}
+.var footer span{font:500 .7rem var(--mono);color:var(--muted)}
+.empty{border:1.5px dashed var(--line);border-radius:20px;min-height:430px;display:grid;place-items:center;text-align:center;padding:30px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:1.1rem;margin-bottom:4px}
+.skel{display:none;grid-template-columns:repeat(3,1fr);gap:14px}.skel.on{display:grid}
+.skel div{height:400px;border-radius:20px;background:linear-gradient(90deg,var(--soft),var(--card),var(--soft));background-size:200% 100%;animation:sh 1.3s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+/* in-interface previews, always light like a real product surface */
+.ui{--u-ink:#18181b;--u-mut:#71717a;--u-line:#e4e4e7;--u-acc:#5b3df5;width:100%;max-width:260px;background:#fff;color:var(--u-ink);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.08);font-size:13px;line-height:1.45}
+.ui h4{font-size:14.5px;font-weight:650;letter-spacing:-.01em}.ui p{color:var(--u-mut);font-size:12.5px;margin-top:4px}
+.ui .b{display:inline-block;margin-top:12px;background:var(--u-acc);color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
+.ui .b.ghost{background:none;color:var(--u-mut);border:1px solid var(--u-line)}.ui .b.red{background:#dc2626}
+.ui .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;margin:0 auto 10px;background:#f4f4f5}
+.u-center{padding:22px 18px;text-align:center}
+.u-toast{display:flex;gap:10px;padding:12px 14px;align-items:flex-start;border-left:3px solid var(--tc,#dc2626)}
+.u-toast svg{flex:none;margin-top:2px}
+.u-toast .b{margin-top:8px;padding:0;background:none;color:var(--tc,#dc2626)}
+.u-dialog{padding:18px}.u-dialog .row{display:flex;flex-direction:column-reverse;gap:6px;margin-top:8px}.u-dialog .row .b{text-align:center;margin-top:0}.u-dialog .row .b:last-child{margin-top:6px}
+.u-tip{position:relative;background:#18181b;color:#fff;max-width:220px;padding:11px 13px}.u-tip p{color:#d4d4d8}.u-tip .b{background:#fff;color:#18181b;margin-top:8px;padding:4px 9px}
+.u-tip::after{content:'';position:absolute;left:24px;bottom:-6px;width:12px;height:12px;background:#18181b;transform:rotate(45deg)}
+.u-field{padding:16px}.u-field label{font-size:12px;font-weight:600}.u-field .in{margin-top:5px;border:1px solid var(--u-line);border-radius:8px;padding:8px 10px;color:#a1a1aa;font-size:12.5px}.u-field p{font-size:11.5px}
+.u-load{padding:20px;text-align:center}.u-load .bar{height:5px;border-radius:9px;background:#f4f4f5;overflow:hidden;margin:12px 0 2px}.u-load .bar i{display:block;height:100%;width:62%;background:var(--u-acc);border-radius:9px}
+.u-404 .code{font:800 34px/1 Inter;letter-spacing:-.05em;color:#e4e4e7;margin-bottom:6px}
+.u-step{padding:18px}.u-step .dots{display:flex;gap:4px;margin-bottom:12px}.u-step .dots i{height:4px;flex:1;border-radius:9px;background:#e4e4e7}.u-step .dots i:first-child{background:var(--u-acc)}
+@media (max-width:1100px){.grid,.skel{grid-template-columns:1fr 1fr}.grid .var:nth-child(3){grid-column:span 2}}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static}.empty{min-height:200px}}
+@media (max-width:620px){.wrap{padding:0 16px}.panel{padding:16px}.grid,.skel{grid-template-columns:1fr}.grid .var:nth-child(3){grid-column:auto}.skel div:nth-child(n+2){display:none}}
+.foot{padding:20px 0 34px;font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;border-top:1px solid var(--line)}.foot a{color:inherit}
+</style>
 </head>
 <body>
+<div class="wrap">
+  <header><div class="brand"><i aria-hidden="true">Aa</i>Microcopy</div><a href="https://neeleshagrawal.vercel.app" target="_blank" rel="noopener">A Ship69 tool by Neelesh ↗</a></header>
+  <section class="hero"><h1>Words for the interface, <em>seen in the interface.</em></h1><p>Pick a UI moment and describe the situation. Get three distinct directions for the headline, supporting line and button, previewed inside the real pattern, with length checks. Click any line to edit it.</p></section>
 
-  <nav>
-    <span class="nav-logo">Microcopy</span>
-    <span class="nav-tag">SHIP69 / DAY 57</span>
-  </nav>
+  <div class="layout">
+    <form class="panel side" id="form">
+      <div class="lbl">UI moment</div>
+      <div class="moments" id="moments"></div>
+      <label class="lbl" for="ctx">The situation <span id="count">0 / 400</span></label>
+      <textarea id="ctx" maxlength="400" placeholder="Who is the user, what just happened, what should they do next?"></textarea>
+      <div class="ex" id="ex" aria-label="Examples"></div>
+      <div class="lbl">Tone</div>
+      <div class="tone" id="tone"></div>
+      <p class="tone-note" id="tone-note"></p>
+      <button class="go" id="go" type="submit">Write three directions →</button>
+      <div class="status" id="status" role="status" aria-live="polite"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to generate</div>
+    </form>
 
-  <div class="hero">
-    <h1>Turn UI moments into <em>words that work.</em></h1>
-    <p>Describe a screen, state, or situation. Get three variations of every text element — headline, subtext, and CTA — ready to paste.</p>
+    <section aria-label="Results">
+      <div class="empty" id="empty"><div><b>Three directions appear here</b>Each one previewed in the pattern you picked.</div></div>
+      <div class="skel" id="skel" aria-hidden="true"><div></div><div></div><div></div></div>
+      <div id="out" hidden>
+        <div class="top"><h2><small id="out-moment"></small>Three directions</h2><div style="display:flex;gap:8px"><button class="btn" id="again">Regenerate</button><button class="btn" id="all">Copy all</button></div></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
   </div>
+  <div class="foot"><span>Microcopy · made during Ship69, rebuilt Oct 2026.</span><a href="https://neeleshagrawal.vercel.app" target="_blank" rel="noopener">neeleshagrawal.vercel.app</a></div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const I = d => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+// word limits: [headline, subtext, cta]
+const MOMENTS = {
+  empty_state: { name: 'Empty state', icon: I('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>'), lim: [8, 18, 4], ex: 'Project management app. A new user opens the Tasks view and has no tasks yet.' },
+  error: { name: 'Error', icon: I('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>'), lim: [6, 16, 3], ex: 'Banking app. A transfer failed because the daily limit was reached. Money was not sent.' },
+  success: { name: 'Success', icon: I('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'), lim: [6, 14, 3], ex: 'Design tool. The user just published their first portfolio site.' },
+  onboarding: { name: 'Onboarding', icon: I('<path d="M5 12h14M13 6l6 6-6 6"/>'), lim: [7, 18, 3], ex: 'Fitness app, step 1 of 3. Ask the user to pick their weekly workout goal.' },
+  tooltip: { name: 'Tooltip', icon: I('<path d="M4 5h16v10H9l-5 4z"/>'), lim: [5, 16, 2], ex: 'Analytics dashboard. Explain the new "Compare periods" toggle the first time it appears.' },
+  not_found: { name: '404 page', icon: I('<path d="M9 9h.01M15 9h.01M8 16c2-2 6-2 8 0"/><circle cx="12" cy="12" r="9"/>'), lim: [6, 16, 3], ex: 'Online bookstore. The user followed an old link to a book page that no longer exists.' },
+  loading: { name: 'Loading', icon: I('<path d="M12 3a9 9 0 1 0 9 9"/>'), lim: [6, 14, 2], ex: 'AI image tool. Generating four images, usually takes 20 seconds.' },
+  confirm: { name: 'Confirm dialog', icon: I('<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 14h3M13 14h3"/>'), lim: [7, 18, 3], ex: 'Email app. The user is about to send a message with no subject line.' },
+  offboarding: { name: 'Delete warning', icon: I('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'), lim: [7, 20, 3], ex: 'Note-taking app. The user is deleting a workspace with 230 notes shared with 4 people.' },
+  placeholder: { name: 'Form field', icon: I('<rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 12h.01"/>'), lim: [4, 12, 5], ex: 'Job application form. The "Portfolio link" field, optional, accepts any URL.' },
+};
+const TONES = {
+  friendly: 'Warm, human, encouraging. Like a helpful friend. Approachable language, no jargon.',
+  professional: 'Clear, direct, confident. Like a well-run product team. No fluff, no over-explaining.',
+  witty: 'Clever, slightly playful, a little unexpected. Makes the user smile without being annoying. Light humour, never forced, never at the user\'s expense.',
+};
+let moment = 'empty_state', tone = 'friendly', data = null;
 
-  <div class="main">
-    <div class="panel-left">
+$('#moments').innerHTML = Object.entries(MOMENTS).map(([k, m]) => `<button type="button" data-k="${k}" aria-pressed="${k === moment}">${m.icon}${m.name}</button>`).join('');
+$('#tone').innerHTML = Object.keys(TONES).map(t => `<button type="button" data-t="${t}" aria-pressed="${t === tone}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('');
+const renderEx = () => $('#ex').innerHTML = `<button type="button">Use an example for ${MOMENTS[moment].name.toLowerCase()}</button>`;
+$('#moments').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; moment = b.dataset.k; $('#moments').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); renderEx(); });
+$('#tone').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; tone = b.dataset.t; $('#tone').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#tone-note').textContent = TONES[tone].split('.')[0] + '.'; });
+$('#tone-note').textContent = TONES[tone].split('.')[0] + '.';
+$('#ex').addEventListener('click', () => { $('#ctx').value = MOMENTS[moment].ex; $('#ctx').dispatchEvent(new Event('input')); });
+$('#ctx').addEventListener('input', () => $('#count').textContent = $('#ctx').value.length + ' / 400');
+$('#ctx').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('#form').requestSubmit(); });
+renderEx();
 
-      <div class="field-group">
-        <label class="field-label" for="momentSelect">UI Moment</label>
-        <select id="momentSelect">
-          <option value="empty_state">Empty state</option>
-          <option value="error">Error message</option>
-          <option value="success">Success message</option>
-          <option value="onboarding">Onboarding step</option>
-          <option value="tooltip">Tooltip</option>
-          <option value="404">404 page</option>
-          <option value="loading">Loading state</option>
-          <option value="confirm">Confirmation dialog</option>
-          <option value="offboarding">Offboarding / delete warning</option>
-          <option value="placeholder">Placeholder text</option>
-        </select>
-      </div>
+const setStatus = (m, err) => { $('#status').textContent = m; $('#status').classList.toggle('err', !!err); };
+const LOAD = ['Reading the situation…', 'Trying three directions…', 'Trimming every word…'];
+async function generate() {
+  const context = $('#ctx').value.trim();
+  if (context.length < 12) return setStatus('Describe the situation in a sentence first.', true), $('#ctx').focus();
+  const m = MOMENTS[moment];
+  const system = `You write UI microcopy for product designers. You output ONLY a JSON object, no markdown, no preamble.
 
-      <div class="field-group">
-        <label class="field-label" for="contextInput">Context</label>
-        <textarea id="contextInput" placeholder="Describe the product and situation. e.g. 'A fintech app — empty state for a notifications inbox. User hasn't enabled notifications yet.'"></textarea>
-      </div>
+Tone: ${TONES[tone]}
+UI moment: ${m.name}
 
-      <div class="field-group">
-        <span class="field-label">Tone</span>
-        <div class="tone-row">
-          <button class="tone-btn active" data-tone="friendly" onclick="setTone('friendly')">Friendly</button>
-          <button class="tone-btn" data-tone="professional" onclick="setTone('professional')">Professional</button>
-          <button class="tone-btn" data-tone="witty" onclick="setTone('witty')">Witty</button>
-        </div>
-      </div>
+Return exactly:
+{"variations":[{"direction":"2-3 word name for this creative direction","headline":"Max ${m.lim[0]} words.","subtext":"One sentence, adds context or the next step. Max ${m.lim[1]} words.","cta":"Max ${m.lim[2]} words, action verb first."},{...},{...}]}
 
-      <button class="gen-btn" id="genBtn" onclick="generate()">Generate copy →</button>
-
-      <div class="loading" id="loading">
-        <div class="dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
-        <span class="load-txt" id="loadTxt">Writing the copy...</span>
-      </div>
-
-      <div class="err-msg" id="errMsg"></div>
-
-    </div>
-
-    <div class="panel-right">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 3v10M3 8h10" stroke="#a8a49c" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <span class="empty-txt">Results appear here</span>
-      </div>
-
-      <div class="results" id="results">
-        <div class="moment-label" id="momentLabel"></div>
-        <div id="variationsContainer"></div>
-        <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()">Copy all variations</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let currentTone = 'friendly';
-    let lastData = null;
-
-    const loadMsgs = [
-      'Writing the copy...',
-      'Finding the right words...',
-      'Testing the tone...',
-      'Almost there...'
-    ];
-
-    const momentLabels = {
-      empty_state: 'EMPTY STATE',
-      error: 'ERROR MESSAGE',
-      success: 'SUCCESS MESSAGE',
-      onboarding: 'ONBOARDING STEP',
-      tooltip: 'TOOLTIP',
-      '404': '404 PAGE',
-      loading: 'LOADING STATE',
-      confirm: 'CONFIRMATION DIALOG',
-      offboarding: 'OFFBOARDING WARNING',
-      placeholder: 'PLACEHOLDER TEXT'
-    };
-
-    function setTone(t) {
-      currentTone = t;
-      document.querySelectorAll('.tone-btn').forEach(b => b.classList.toggle('active', b.dataset.tone === t));
-    }
-
-    async function generate() {
-      const context = document.getElementById('contextInput').value.trim();
-      if (!context) {
-        document.getElementById('errMsg').textContent = 'Add some context first.';
-        document.getElementById('errMsg').classList.add('on');
-        return;
-      }
-
-      const moment = document.getElementById('momentSelect').value;
-      const btn = document.getElementById('genBtn');
-      const loading = document.getElementById('loading');
-      const ltxt = document.getElementById('loadTxt');
-      const errMsg = document.getElementById('errMsg');
-      const emptyState = document.getElementById('emptyState');
-      const results = document.getElementById('results');
-
-      btn.disabled = true;
-      errMsg.classList.remove('on');
-      results.classList.remove('on');
-      emptyState.style.display = 'none';
-      loading.classList.add('on');
-
-      let mi = 0;
-      const lt = setInterval(() => {
-        mi = (mi + 1) % loadMsgs.length;
-        ltxt.textContent = loadMsgs[mi];
-      }, 1800);
-
-      const toneGuide = {
-        friendly: 'Warm, human, encouraging. Like a helpful friend. Approachable language, no jargon.',
-        professional: 'Clear, direct, confident. Like a well-run product team. No fluff, no over-explaining.',
-        witty: 'Clever, slightly playful, a little unexpected. Makes the user smile without being annoying. Light humour, never forced.'
-      };
-
-      const system = `You write UI microcopy for product designers. You output ONLY a JSON object, no markdown, no preamble.
-
-Tone: ${toneGuide[currentTone]}
-
-UI Moment type: ${moment}
-
-Return exactly this shape:
-{
-  "variations": [
-    {
-      "headline": "Short heading — the main message. Max 8 words.",
-      "subtext": "Supporting sentence. One sentence, adds context or next step. Max 18 words.",
-      "cta": "Button or link label. Max 4 words. Action verb first."
-    },
-    {
-      "headline": "...",
-      "subtext": "...",
-      "cta": "..."
-    },
-    {
-      "headline": "...",
-      "subtext": "...",
-      "cta": "..."
-    }
-  ]
+Three genuinely different directions, not synonyms. Be specific to the situation, never generic. Sentence case. No exclamation marks unless the moment is a celebration. No markdown.`;
+  $('#go').disabled = true; $('#empty').hidden = true; $('#out').hidden = true; $('#skel').classList.add('on');
+  let i = 0; setStatus(LOAD[0]); const t = setInterval(() => setStatus(LOAD[++i % LOAD.length]), 1600);
+  try {
+    const res = await fetch('/api/microcopy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ max_tokens: 1000, system, messages: [{ role: 'user', content: context }] }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(res.status === 429 ? 'Too many requests right now. Wait a minute and try again.' : 'Could not write the copy. Please try again.');
+    const parsed = JSON.parse((d.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim());
+    if (!parsed.variations?.length) throw new Error('JSON');
+    data = { moment, variations: parsed.variations.slice(0, 3) };
+    render(); setStatus('');
+  } catch (e) { setStatus(e.message === 'JSON' || e instanceof SyntaxError ? 'The response came back malformed. Please try again.' : e.message, true); $('#empty').hidden = false; }
+  finally { clearInterval(t); $('#skel').classList.remove('on'); $('#go').disabled = false; }
 }
+$('#form').addEventListener('submit', e => { e.preventDefault(); generate(); });
+$('#again').addEventListener('click', generate);
 
-Three genuinely different variations — not just synonyms. Each should feel like a distinct creative direction while staying in the same tone. No bullet points anywhere. No markdown.`;
-
-      try {
-        const res = await fetch('/api/microcopy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'openai/gpt-oss-120b',
-            reasoning_effort: 'low',
-            max_tokens: 1000,
-            system,
-            messages: [{ role: 'user', content: context }]
-          })
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          const msg = data.error?.message || data.error?.detail || data.error || 'API request failed';
-          throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-        }
-
-        const raw = data.choices?.[0]?.message?.content || '';
-        const clean = raw.replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(clean);
-        lastData = { moment, variations: parsed.variations };
-
-        clearInterval(lt);
-        loading.classList.remove('on');
-
-        document.getElementById('momentLabel').textContent = momentLabels[moment] || moment.toUpperCase();
-
-        const container = document.getElementById('variationsContainer');
-        container.innerHTML = parsed.variations.map((v, i) => `
-          <div class="variation">
-            <div class="var-header">
-              <span class="var-num">VARIATION ${i + 1}</span>
-              <button class="var-copy-btn" onclick="copyVariation(${i})">Copy</button>
-            </div>
-            <div class="var-body">
-              <div class="copy-line">
-                <span class="copy-key">Headline</span>
-                <span class="copy-val headline">${v.headline}</span>
-              </div>
-              <div class="copy-line">
-                <span class="copy-key">Subtext</span>
-                <span class="copy-val subtext">${v.subtext}</span>
-              </div>
-              <div class="copy-line">
-                <span class="copy-key">CTA</span>
-                <span class="copy-val cta">${v.cta}</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
-
-        results.classList.add('on');
-        btn.disabled = false;
-
-      } catch (e) {
-        clearInterval(lt);
-        loading.classList.remove('on');
-        emptyState.style.display = 'flex';
-        errMsg.textContent = e.message || 'Something went wrong. Check your connection and try again.';
-        errMsg.classList.add('on');
-        btn.disabled = false;
-      }
-    }
-
-    function copyVariation(i) {
-      if (!lastData) return;
-      const v = lastData.variations[i];
-      const txt = `Headline: ${v.headline}\nSubtext: ${v.subtext}\nCTA: ${v.cta}`;
-      navigator.clipboard.writeText(txt).then(() => {
-        const btns = document.querySelectorAll('.var-copy-btn');
-        btns[i].textContent = 'Copied ✓';
-        btns[i].classList.add('copied');
-        setTimeout(() => {
-          btns[i].textContent = 'Copy';
-          btns[i].classList.remove('copied');
-        }, 2000);
-      });
-    }
-
-    function copyAll() {
-      if (!lastData) return;
-      const txt = lastData.variations.map((v, i) =>
-        `Variation ${i + 1}\nHeadline: ${v.headline}\nSubtext: ${v.subtext}\nCTA: ${v.cta}`
-      ).join('\n\n');
-      navigator.clipboard.writeText(txt).then(() => {
-        const btn = document.getElementById('copyAllBtn');
-        btn.textContent = 'Copied ✓';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = 'Copy all variations';
-          btn.classList.remove('copied');
-        }, 2000);
-      });
-    }
-  </script>
-
+function preview(k, v) {
+  const h = `<h4 data-f="headline">${esc(v.headline)}</h4>`, s = `<p data-f="subtext">${esc(v.subtext)}</p>`, c = cls => `<span class="b ${cls || ''}" data-f="cta">${esc(v.cta)}</span>`;
+  switch (k) {
+    case 'error': return `<div class="ui u-toast">${I('<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>').replace('currentColor', '#dc2626')}<div>${h}${s}${c()}</div></div>`;
+    case 'success': return `<div class="ui u-toast" style="--tc:#16a34a">${I('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>').replace('currentColor', '#16a34a')}<div>${h}${s}${c()}</div></div>`;
+    case 'tooltip': return `<div class="ui u-tip">${h}${s}${c()}</div>`;
+    case 'confirm': return `<div class="ui u-dialog">${h}${s}<div class="row"><span class="b ghost">Cancel</span>${c()}</div></div>`;
+    case 'offboarding': return `<div class="ui u-dialog">${h}${s}<div class="row"><span class="b ghost">Keep it</span>${c('red')}</div></div>`;
+    case 'placeholder': return `<div class="ui u-field"><label data-f="headline">${esc(v.headline)}</label><div class="in" data-f="cta">${esc(v.cta)}</div><p data-f="subtext">${esc(v.subtext)}</p></div>`;
+    case 'loading': return `<div class="ui u-load">${h}<div class="bar"><i></i></div>${s}${c('ghost')}</div>`;
+    case 'not_found': return `<div class="ui u-center u-404"><div class="code">404</div>${h}${s}${c()}</div>`;
+    case 'onboarding': return `<div class="ui u-step"><div class="dots"><i></i><i></i><i></i></div>${h}${s}${c()}</div>`;
+    default: return `<div class="ui u-center"><div class="ic">${MOMENTS[k].icon}</div>${h}${s}${c()}</div>`;
+  }
+}
+const words = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
+function render() {
+  const m = MOMENTS[data.moment];
+  $('#out-moment').textContent = m.name + ' · ' + tone;
+  const keys = [['headline', data.moment === 'placeholder' ? 'Label' : 'Headline', 0], ['subtext', data.moment === 'placeholder' ? 'Helper text' : 'Supporting line', 1], ['cta', data.moment === 'placeholder' ? 'Placeholder' : 'Button', 2]];
+  $('#grid').innerHTML = data.variations.map((v, i) => `<article class="var" data-i="${i}"><div class="stage">${preview(data.moment, v)}</div>
+    <div class="words">${keys.map(([f, l, li]) => { const n = words(v[f]); return `<div class="w"><small>${l}<b class="${n > m.lim[li] ? 'over' : ''}" data-n="${f}">${n}/${m.lim[li]} words</b></small><p contenteditable="plaintext-only" spellcheck="true" data-e="${f}">${esc(v[f])}</p></div>`; }).join('')}</div>
+    <footer><span>${esc(v.direction || 'Direction ' + (i + 1))}</span><button class="btn" data-copy="${i}">Copy</button></footer></article>`).join('');
+  $('#out').hidden = false;
+  if (innerWidth < 900) $('#out').scrollIntoView({ behavior: 'smooth' });
+}
+// live edits update the preview and counts
+$('#grid').addEventListener('input', e => {
+  const p = e.target.closest('[data-e]'); if (!p) return;
+  const card = p.closest('.var'), i = +card.dataset.i, f = p.dataset.e, lim = MOMENTS[data.moment].lim[['headline', 'subtext', 'cta'].indexOf(f)];
+  data.variations[i][f] = p.textContent;
+  card.querySelectorAll(`.stage [data-f="${f}"]`).forEach(x => x.textContent = p.textContent);
+  const b = card.querySelector(`[data-n="${f}"]`), n = words(p.textContent); b.textContent = `${n}/${lim} words`; b.classList.toggle('over', n > lim);
+});
+const asText = (v, i) => `${v.direction || 'Direction ' + (i + 1)}\nHeadline: ${v.headline}\nSupporting: ${v.subtext}\nButton: ${v.cta}`;
+const flash = b => { const l = b.textContent; b.textContent = 'Copied ✓'; b.classList.add('done'); setTimeout(() => { b.textContent = l; b.classList.remove('done'); }, 1400); };
+$('#grid').addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) navigator.clipboard.writeText(asText(data.variations[b.dataset.copy], +b.dataset.copy)).then(() => flash(b)); });
+$('#all').addEventListener('click', () => navigator.clipboard.writeText(data.variations.map(asText).join('\n\n')).then(() => flash($('#all'))));
+</script>
 </body>
 </html>
